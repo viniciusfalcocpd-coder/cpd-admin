@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+
+    <meta charset="UTF-8">
+    <title>Sistema de Diagnóstico - CPD</title>
+
+    <link rel="stylesheet" href="style.css">
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+
+</head>
+
+<body>
+
+<div class="container">
+
+<header>
+
+<h1>Sistema de Diagnóstico Técnico</h1>
+
+<p>Centro de Processamento de Dados - CPD</p>
+
+</header>
+
+<section>
+
+<h2>Identificação</h2>
+
+<div class="grid">
+
+<div>
+<label>Nº Patrimônio</label>
+<input id="patrimonio">
+</div>
+
+<div>
+<label>Nº Secretaria</label>
+<input id="secretaria">
+</div>
+
+<div>
+<label>Origem da Demanda</label>
+<input id="origem">
+</div>
+
+<div>
+<label>Responsável pelo Equipamento</label>
+<input id="responsavel">
+</div>
+
+<div>
+<label>Técnico Responsável</label>
+
+<select id="tecnico">
+
+<option>Vinicius</option>
+<option>Tiago</option>
+<option>Larissa</option>\
+<option>Fabrício</option>
+<option>Ronildo</option>
+<option>Renato</option>
+<option>Pedro</option>
+<option>Fernanda</option>
+<option>Marcos</option>
+
+</select>
+
+</div>
+
+<div>
+<label>Data</label>
+
+<input type="date" id="data">
+
+</div>
+
+</div>
+
+</section>
+
+<section>
+
+<h2>Configuração do Computador</h2>
+
+<div class="grid">
+
+<div>
+
+<label>Marca</label>
+<input id="marca">
+
+</div>
+
+<div>
+
+<label>Modelo</label>
+<input id="modelo">
+
+</div>
+
+<div>
+
+<label>Processador</label>
+<input id="cpu">
+
+</div>
+
+<div>
+
+<label>Memória RAM</label>
+<input id="ram">
+
+</div>
+
+<div>
+
+<label>HD / SSD</label>
+<input id="armazenamento">
+
+</div>
+
+<div>
+
+<label>Sistema Operacional</label>
+<input id="so">
+
+</div>
+
+</div>
+
+</section>
+
+<section>
+
+<h2>Diagnóstico</h2>
+
+<label>Problema Relatado</label>
+
+<textarea id="problema"></textarea>
+
+<label>Diagnóstico Técnico</label>
+
+<textarea id="diagnostico"></textarea>
+
+<label>Procedimentos Realizados</label>
+
+<textarea id="procedimentos"></textarea>
+
+</section>
+
+<section>
+
+<h2>Componentes Reutilizáveis</h2>
+
+<div class="checkboxes">
+
+<label><input type="checkbox" value="Fonte"> Fonte</label>
+
+<label><input type="checkbox" value="HD"> HD</label>
+
+<label><input type="checkbox" value="SSD"> SSD</label>
+
+<label><input type="checkbox" value="Memória RAM"> Memória RAM</label>
+
+<label><input type="checkbox" value="Processador"> Processador</label>
+
+<label><input type="checkbox" value="Placa-Mãe"> Placa-Mãe</label>
+
+<label><input type="checkbox" value="Gabinete"> Gabinete</label>
+
+<label><input type="checkbox" value="Cooler"> Cooler</label>
+
+<label><input type="checkbox" value="Fonte Notebook"> Fonte Notebook</label>
+
+</div>
+
+</section>
+
+<section>
+
+<h2>Status do Equipamento</h2>
+
+<select id="status">
+
+<option>Equipamento Reparado</option>
+
+<option>Aguardando Peças</option>
+
+<option>Em Manutenção</option>
+
+<option>Equipamento Condenado</option>
+
+<option>Solicitar Baixa Patrimonial</option>
+
+</select>
+
+</section>
+
+<section>
+
+<label>Observações</label>
+
+<textarea id="observacoes"></textarea>
+
+</section>
+
+<button onclick="gerarPDF()">
+
+Gerar Relatório em PDF
+
+</button>
+
+</div>
+
+<script src="script.js"></script>
+
+</body>
+
+</html>
