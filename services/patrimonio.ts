@@ -10,6 +10,7 @@ import type {
   SecretariaLookup,
   TecnologiaLookup,
 } from "@/types/patrimonio";
+import { patrimonioStatusLabel } from "@/types/patrimonio";
 
 type SecretariaRow = SecretariaLookup;
 type EquipamentoRow = EquipamentoLookup;
@@ -50,6 +51,15 @@ type PatrimonioPayload = {
   pecas_retiradas: string[];
 };
 
+type PatrimonioAgenteLookup = {
+  id: string;
+  patrimonio: string;
+  equipamento: string;
+  secretaria: string;
+  responsavel: string;
+  status: string;
+};
+
 function normalizeText(value: string) {
   const trimmed = value.trim();
   return trimmed.length ? trimmed : null;
@@ -76,6 +86,18 @@ function mapPatrimonioRow(row: PatrimonioRow): PatrimonioRecord {
 
 async function getClient() {
   return createSupabaseServerClient();
+}
+
+function formatSecretaria(secretaria: SecretariaRow | null) {
+  if (!secretaria) {
+    return "Não informado";
+  }
+
+  return `${secretaria.codigo} - ${secretaria.nome}`;
+}
+
+function formatStatus(status: PatrimonioStatus) {
+  return patrimonioStatusLabel[status];
 }
 
 async function fetchSecretarias() {
@@ -167,6 +189,55 @@ export async function getPatrimonioRecordById(id: string): Promise<PatrimonioRec
   }
 
   return data ? mapPatrimonioRow(data as PatrimonioRow) : null;
+}
+
+export async function getPatrimonioForAgenteByNumero(
+  patrimonio: string,
+): Promise<PatrimonioAgenteLookup | null> {
+  const supabase = await getClient();
+  const { data: patrimonioRow, error: patrimonioError } = await supabase
+    .from("patrimonios")
+    .select("id, patrimonio, secretaria_id, equipamento_id, responsavel, status")
+    .eq("patrimonio", patrimonio)
+    .maybeSingle();
+
+  if (patrimonioError) {
+    throw new Error(`Falha ao consultar patrimonio: ${patrimonioError.message}`);
+  }
+
+  if (!patrimonioRow) {
+    return null;
+  }
+
+  const [secretariaResult, equipamentoResult] = await Promise.all([
+    supabase
+      .from("secretarias")
+      .select("id, codigo, nome")
+      .eq("id", patrimonioRow.secretaria_id)
+      .maybeSingle(),
+    supabase
+      .from("equipamentos")
+      .select("id, nome")
+      .eq("id", patrimonioRow.equipamento_id)
+      .maybeSingle(),
+  ]);
+
+  if (secretariaResult.error) {
+    throw new Error(`Falha ao consultar secretaria do patrimonio: ${secretariaResult.error.message}`);
+  }
+
+  if (equipamentoResult.error) {
+    throw new Error(`Falha ao consultar equipamento do patrimonio: ${equipamentoResult.error.message}`);
+  }
+
+  return {
+    id: patrimonioRow.id,
+    patrimonio: patrimonioRow.patrimonio,
+    equipamento: equipamentoResult.data?.nome ?? "Não informado",
+    secretaria: formatSecretaria(secretariaResult.data as SecretariaRow | null),
+    responsavel: patrimonioRow.responsavel,
+    status: formatStatus(patrimonioRow.status as PatrimonioStatus),
+  };
 }
 
 export async function createPatrimonioRecord(input: PatrimonioFormInput): Promise<PatrimonioRecord> {
