@@ -9,9 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Select } from "@/components/ui/select";
-import { Textarea } from "@/components/ui/textarea";
 import { PageHeader } from "@/components/page-header";
-import { PatrimonioStatusBadge } from "@/components/modules/patrimonio/PatrimonioStatusBadge";
 import { getPecasPorEquipamento } from "@/components/modules/patrimonio/patrimonio-pieces";
 import { createPatrimonioAction, updatePatrimonioAction } from "@/services/patrimonio-actions";
 import type {
@@ -21,7 +19,7 @@ import type {
   PatrimonioPageData,
   PatrimonioRecord,
 } from "@/types/patrimonio";
-import { patrimonioStatusOptions } from "@/types/patrimonio";
+import { patrimonioSituacaoOperacionalOptions } from "@/types/patrimonio";
 
 type PatrimonioFormPageProps = {
   mode: PatrimonioMode;
@@ -38,9 +36,10 @@ function getDefaultValues(item: PatrimonioRecord | null): PatrimonioFormValues {
     marca: item?.marca ?? "",
     responsavel: item?.responsavel ?? "",
     status: item?.status ?? "pending",
-    problema: item?.problema ?? "",
-    diagnostico: item?.diagnostico ?? "",
-    solucao: item?.solucao ?? "",
+    problema: "",
+    diagnostico: "",
+    solucao: "",
+    situacao_operacional: item?.situacao_operacional ?? "em_uso",
     condenado: item?.condenado ?? false,
     pecas_retiradas: item?.pecas_retiradas ?? [],
   };
@@ -106,7 +105,6 @@ export function PatrimonioFormPage({ mode, item, initialData }: PatrimonioFormPa
   const tecnologiaId = useWatch({ control: form.control, name: "tecnologia_id" });
   const condenado = useWatch({ control: form.control, name: "condenado" });
   const responsavel = useWatch({ control: form.control, name: "responsavel" });
-  const status = useWatch({ control: form.control, name: "status" });
   const watchedPecasRetiradas = useWatch({ control: form.control, name: "pecas_retiradas" });
   const pecasRetiradas = useMemo(() => watchedPecasRetiradas ?? [], [watchedPecasRetiradas]);
 
@@ -157,10 +155,8 @@ export function PatrimonioFormPage({ mode, item, initialData }: PatrimonioFormPa
 
     const payload: PatrimonioFormInput = {
       ...values,
+      status: writeOffConfirmed ? "written_off" : values.status,
       tecnologia_id: values.tecnologia_id.trim(),
-      problema: values.problema.trim(),
-      diagnostico: values.diagnostico.trim(),
-      solucao: values.solucao.trim(),
       pecas_retiradas: values.condenado ? values.pecas_retiradas : [],
     };
 
@@ -245,31 +241,17 @@ export function PatrimonioFormPage({ mode, item, initialData }: PatrimonioFormPa
                     <Input {...form.register("responsavel")} placeholder="Nome do responsavel" />
                   </Field>
 
-                  <Field label="Status">
-                    <Select {...form.register("status")}>
-                      {patrimonioStatusOptions.map((option) => (
+                  <Field label="Situacao operacional">
+                    <Select {...form.register("situacao_operacional")}>
+                      {patrimonioSituacaoOperacionalOptions.map((option) => (
                         <option key={option.value} value={option.value}>
                           {option.label}
                         </option>
                       ))}
                     </Select>
                   </Field>
-                </div>
-              </Section>
 
-              <Section title="Informacoes tecnicas">
-                <div className="grid gap-3 xl:grid-cols-2">
-                  <Field label="Problema relatado">
-                    <Textarea {...form.register("problema")} className="min-h-[140px]" />
-                  </Field>
-
-                  <Field label="Diagnostico tecnico">
-                    <Textarea {...form.register("diagnostico")} className="min-h-[140px]" />
-                  </Field>
-
-                  <Field label="Solucao aplicada" className="xl:col-span-2">
-                    <Textarea {...form.register("solucao")} className="min-h-[120px]" />
-                  </Field>
+                  <input type="hidden" {...form.register("status")} />
                 </div>
               </Section>
 
@@ -368,7 +350,10 @@ export function PatrimonioFormPage({ mode, item, initialData }: PatrimonioFormPa
               <Row label="Equipamento" value={selectedEquipment?.nome ?? "Selecione"} />
               <Row label="Tecnologia" value={selectedTecnologia?.nome ?? "Nao informado"} />
               <Row label="Responsavel" value={responsavel || "Selecione"} />
-              <Row label="Status" value={<PatrimonioStatusBadge value={status} />} />
+              <Row
+                label="Situacao operacional"
+                value={patrimonioSituacaoOperacionalOptions.find((option) => option.value === form.watch("situacao_operacional"))?.label ?? "Em uso"}
+              />
             </div>
 
             <div className="space-y-3">

@@ -2,11 +2,9 @@
 
 import { useMemo } from "react";
 import { PageHeader } from "@/components/page-header";
-import { Button } from "@/components/ui/button";
 import { PatrimonioFilters } from "@/components/modules/patrimonio/PatrimonioFilters";
 import { PatrimonioTable } from "@/components/modules/patrimonio/PatrimonioTable";
 import { usePatrimonio } from "@/hooks/use-patrimonio";
-import { PatrimonioPreview } from "@/components/modules/patrimonio/PatrimonioPreview";
 import type { PatrimonioPageData, PatrimonioRecord } from "@/types/patrimonio";
 
 type PatrimonioModuleProps = {
@@ -25,22 +23,19 @@ export function PatrimonioModule({ initialData }: PatrimonioModuleProps) {
     setQuery,
     activeTab,
     setActiveTab,
-    selectedItem,
     selectedId,
-    setSelectedId,
-    isPending,
-    openCreate,
     openEdit,
-    requestSelectedEdit,
-    requestSelectedArchive,
-    refresh,
+    operationalFilter,
+    setOperationalFilter,
+    agentFilter,
+    setAgentFilter,
   } = usePatrimonio(initialData);
 
   const activeCount = useMemo(() => items.filter((item) => !item.arquivado).length, [items]);
   const archivedCount = useMemo(() => items.filter((item) => item.arquivado).length, [items]);
 
   function handleRowSelect(item: PatrimonioRecord) {
-    setSelectedId(item.id);
+    openEdit(item);
   }
 
   return (
@@ -61,18 +56,6 @@ export function PatrimonioModule({ initialData }: PatrimonioModuleProps) {
         </div>
       </div>
 
-      {selectedItem ? (
-  <PatrimonioPreview
-  item={selectedItem}
-  equipamentos={initialData.equipamentos}
-  tecnologias={initialData.tecnologias}
-  secretarias={initialData.secretarias}
-  onEdit={() => openEdit(selectedItem)}
-  onArchive={requestSelectedArchive}
-  onClose={() => setSelectedId(null)}
-/>
-) : null}
-
       <PatrimonioFilters
         query={query}
         onQueryChange={setQuery}
@@ -80,16 +63,18 @@ export function PatrimonioModule({ initialData }: PatrimonioModuleProps) {
         onTabChange={setActiveTab}
         totalItems={items.length}
         visibleItems={filteredItems.length}
+        operationalFilter={operationalFilter}
+        onOperationalFilterChange={setOperationalFilter}
+        agentFilter={agentFilter}
+        onAgentFilterChange={setAgentFilter}
       />
 
       <PatrimonioTable
         items={filteredItems}
         secretarias={initialData.secretarias}
         equipamentos={initialData.equipamentos}
-        tecnologias={initialData.tecnologias}
         selectedId={selectedId}
         onSelect={handleRowSelect}
-        onOpen={openEdit}
       />
     </div>
   );

@@ -1,15 +1,14 @@
-import type { EquipamentoLookup, PatrimonioRecord, SecretariaLookup, TecnologiaLookup } from "@/types/patrimonio";
-import { PatrimonioStatusBadge } from "@/components/modules/patrimonio/PatrimonioStatusBadge";
+import type { EquipamentoLookup, PatrimonioRecord, SecretariaLookup } from "@/types/patrimonio";
+import { PatrimonioOperationalBadge } from "@/components/modules/patrimonio/PatrimonioOperationalBadge";
+import { PatrimonioAgentBadge } from "@/components/modules/patrimonio/PatrimonioAgentBadge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 
 type PatrimonioTableProps = {
   items: PatrimonioRecord[];
   secretarias: SecretariaLookup[];
   equipamentos: EquipamentoLookup[];
-  tecnologias: TecnologiaLookup[];
   selectedId: string | null;
   onSelect: (item: PatrimonioRecord) => void;
-  onOpen: (item: PatrimonioRecord) => void;
 };
 
 function getLookupName<T extends { id: string; nome: string }>(items: T[], id: string | null) {
@@ -29,10 +28,8 @@ export function PatrimonioTable({
   items,
   secretarias,
   equipamentos,
-  tecnologias,
   selectedId,
   onSelect,
-  onOpen,
 }: PatrimonioTableProps) {
   return (
     <div className="border border-border bg-card">
@@ -41,11 +38,11 @@ export function PatrimonioTable({
           <TableRow>
             <TableHead>Patrimonio</TableHead>
             <TableHead>Equipamento</TableHead>
-            <TableHead>Marca</TableHead>
-            <TableHead>Tecnologia</TableHead>
             <TableHead>Secretaria</TableHead>
             <TableHead>Responsavel</TableHead>
-            <TableHead>Status</TableHead>
+            <TableHead>Situacao</TableHead>
+            <TableHead>Agente</TableHead>
+            <TableHead>Ultima coleta</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -65,19 +62,19 @@ export function PatrimonioTable({
 >
                   <TableCell className="font-medium">{item.patrimonio}</TableCell>
                   <TableCell>{getLookupName(equipamentos, item.equipamento_id)}</TableCell>
-                  <TableCell>{item.marca}</TableCell>
-                  <TableCell>{getLookupName(tecnologias, item.tecnologia_id)}</TableCell>
                   <TableCell>{getSecretariaName(secretarias, item.secretaria_id)}</TableCell>
                   <TableCell>{item.responsavel}</TableCell>
-                  <TableCell>
-                    <PatrimonioStatusBadge value={item.status} />
+                  <TableCell><PatrimonioOperationalBadge value={item.situacao_operacional} /></TableCell>
+                  <TableCell><PatrimonioAgentBadge inventory={item.inventario} /></TableCell>
+                  <TableCell className="whitespace-nowrap text-xs text-muted-foreground">
+                    {item.inventario?.collected_at ? new Date(item.inventario.collected_at).toLocaleString("pt-BR") : "—"}
                   </TableCell>
                 </TableRow>
               );
             })
           ) : (
             <TableRow>
-              <TableCell colSpan={7} className="py-12 text-center text-sm text-muted-foreground">
+              <TableCell colSpan={8} className="py-12 text-center text-sm text-muted-foreground">
                 Nenhum patrimonio encontrado.
               </TableCell>
             </TableRow>
@@ -87,4 +84,3 @@ export function PatrimonioTable({
     </div>
   );
 }
-

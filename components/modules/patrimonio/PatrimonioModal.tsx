@@ -5,7 +5,6 @@ import { useForm, useWatch } from "react-hook-form";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select } from "@/components/ui/select";
-import { Textarea } from "@/components/ui/textarea";
 import { FormModal } from "@/components/form-modal";
 import { getPecasPorEquipamento } from "@/components/modules/patrimonio/patrimonio-pieces";
 import type {
@@ -17,7 +16,7 @@ import type {
   SecretariaLookup,
   TecnologiaLookup,
 } from "@/types/patrimonio";
-import { patrimonioStatusOptions } from "@/types/patrimonio";
+import { patrimonioSituacaoOperacionalOptions } from "@/types/patrimonio";
 
 type PatrimonioModalProps = {
   open: boolean;
@@ -41,6 +40,7 @@ function getDefaultValues(item: PatrimonioRecord | null): PatrimonioFormValues {
     marca: item?.marca ?? "",
     responsavel: item?.responsavel ?? "",
     status: item?.status ?? "pending",
+    situacao_operacional: item?.situacao_operacional ?? "em_uso",
     problema: item?.problema ?? "",
     diagnostico: item?.diagnostico ?? "",
     solucao: item?.solucao ?? "",
@@ -101,9 +101,6 @@ export function PatrimonioModal({
     onSubmit({
       ...values,
       tecnologia_id: values.tecnologia_id.trim(),
-      problema: values.problema.trim(),
-      diagnostico: values.diagnostico.trim(),
-      solucao: values.solucao.trim(),
       pecas_retiradas: values.condenado ? values.pecas_retiradas : [],
     });
   });
@@ -179,9 +176,9 @@ export function PatrimonioModal({
           </label>
 
           <label className="space-y-1 text-sm md:col-span-2">
-            <span className="text-muted-foreground">Status</span>
-            <Select {...form.register("status")}>
-              {patrimonioStatusOptions.map((option) => (
+            <span className="text-muted-foreground">Situacao operacional</span>
+            <Select {...form.register("situacao_operacional")}>
+              {patrimonioSituacaoOperacionalOptions.map((option) => (
                 <option key={option.value} value={option.value}>
                   {option.label}
                 </option>
@@ -189,21 +186,6 @@ export function PatrimonioModal({
             </Select>
           </label>
         </div>
-
-        <label className="space-y-1 text-sm">
-          <span className="text-muted-foreground">Problema relatado</span>
-          <Textarea {...form.register("problema")} placeholder="Descreva o defeito ou sintoma" />
-        </label>
-
-        <label className="space-y-1 text-sm">
-          <span className="text-muted-foreground">Diagnostico tecnico</span>
-          <Textarea {...form.register("diagnostico")} placeholder="Informe a analise tecnica" />
-        </label>
-
-        <label className="space-y-1 text-sm">
-          <span className="text-muted-foreground">Solucao aplicada</span>
-          <Textarea {...form.register("solucao")} placeholder="Informe a solucao aplicada" />
-        </label>
 
         <label className="flex items-center gap-2 text-sm">
           <input

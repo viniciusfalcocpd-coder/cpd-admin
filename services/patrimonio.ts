@@ -1,12 +1,15 @@
 import "server-only";
 
 import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { getInventarioByPatrimonioId, getInventariosByPatrimonioIds } from "@/services/inventario";
+import { getPatrimonioIdsWithActiveDemand } from "@/services/demandas-patrimonio";
 import type {
   EquipamentoLookup,
   PatrimonioFormInput,
   PatrimonioPageData,
   PatrimonioRecord,
   PatrimonioStatus,
+  PatrimonioSituacaoOperacional,
   SecretariaLookup,
   TecnologiaLookup,
 } from "@/types/patrimonio";
@@ -33,6 +36,7 @@ type PatrimonioRow = {
   pecas_retiradas: string[] | string | null;
   created_at: string;
   updated_at: string;
+  situacao_operacional: PatrimonioSituacaoOperacional;
 };
 
 type PatrimonioPayload = {
@@ -42,13 +46,14 @@ type PatrimonioPayload = {
   tecnologia_id: string | null;
   marca: string;
   responsavel: string;
-  problema: string | null;
-  diagnostico: string | null;
-  solucao: string | null;
+  problema?: string | null;
+  diagnostico?: string | null;
+  solucao?: string | null;
   status: PatrimonioStatus;
   arquivado: boolean;
   condenado: boolean;
   pecas_retiradas: string[];
+  situacao_operacional: PatrimonioSituacaoOperacional;
 };
 
 type PatrimonioAgenteLookup = {
@@ -73,7 +78,7 @@ function normalizePecasRetiradas(value: unknown): string[] {
   return value.filter((item): item is string => typeof item === "string" && item.trim().length > 0);
 }
 
-function mapPatrimonioRow(row: PatrimonioRow): PatrimonioRecord {
+function mapPatrimonioRow(row: PatrimonioRow): Omit<PatrimonioRecord, "inventario"> {
   return {
     ...row,
     tecnologia_id: row.tecnologia_id ?? null,
@@ -147,7 +152,7 @@ async function fetchPatrimonios() {
   const { data, error } = await supabase
     .from("patrimonios")
     .select(
-      "id, patrimonio, secretaria_id, equipamento_id, tecnologia_id, marca, responsavel, problema, diagnostico, solucao, status, arquivado, condenado, pecas_retiradas, created_at, updated_at",
+      "id, patrimonio, secretaria_id, equipamento_id, tecnologia_id, marca, responsavel, problema, diagnostico, solucao, status, arquivado, condenado, pecas_retiradas, situacao_operacional, created_at, updated_at",
     )
     .order("created_at", { ascending: false });
 
@@ -155,7 +160,16 @@ async function fetchPatrimonios() {
     throw new Error(`Falha ao carregar patrimonios: ${error.message}`);
   }
 
-  return ((data ?? []) as PatrimonioRow[]).map(mapPatrimonioRow);
+  const rows = (data ?? []) as PatrimonioRow[];
+  const inventories = await getInventariosByPatrimonioIds(rows.map((row) => row.id));
+  const activeDemandPatrimonioIds = await getPatrimonioIdsWithActiveDemand(rows.map((row) => row.id));
+  const inventoryByPatrimonioId = new Map(inventories.map((inventory) => [inventory.patrimonio_id, inventory]));
+
+  return rows.map((row) => ({
+    ...mapPatrimonioRow(row),
+    situacao_operacional: activeDemandPatrimonioIds.has(row.id) ? "em_manutencao" : row.situacao_operacional,
+    inventario: inventoryByPatrimonioId.get(row.id) ?? null,
+  }));
 }
 
 export async function getPatrimonioPageData(): Promise<PatrimonioPageData> {
@@ -179,7 +193,7 @@ export async function getPatrimonioRecordById(id: string): Promise<PatrimonioRec
   const { data, error } = await supabase
     .from("patrimonios")
     .select(
-      "id, patrimonio, secretaria_id, equipamento_id, tecnologia_id, marca, responsavel, problema, diagnostico, solucao, status, arquivado, condenado, pecas_retiradas, created_at, updated_at",
+      "id, patrimonio, secretaria_id, equipamento_id, tecnologia_id, marca, responsavel, problema, diagnostico, solucao, status, arquivado, condenado, pecas_retiradas, situacao_operacional, created_at, updated_at",
     )
     .eq("id", id)
     .maybeSingle();
@@ -188,7 +202,9 @@ export async function getPatrimonioRecordById(id: string): Promise<PatrimonioRec
     throw new Error(`Falha ao carregar patrimonio: ${error.message}`);
   }
 
-  return data ? mapPatrimonioRow(data as PatrimonioRow) : null;
+  if (!data) return null;
+  const inventory = await getInventarioByPatrimonioId(id);
+  return { ...mapPatrimonioRow(data as PatrimonioRow), inventario: inventory };
 }
 
 export async function getPatrimonioForAgenteByNumero(
@@ -249,24 +265,25 @@ export async function createPatrimonioRecord(input: PatrimonioFormInput): Promis
     tecnologia_id: input.tecnologia_id.trim() ? input.tecnologia_id : null,
     marca: input.marca.trim(),
     responsavel: input.responsavel.trim(),
-    problema: normalizeText(input.problema),
-    diagnostico: normalizeText(input.diagnostico),
-    solucao: normalizeText(input.solucao),
+    problema: null,
+    diagnostico: null,
+    solucao: null,
     status: input.status,
     arquivado: input.status === "written_off",
     condenado: input.condenado,
     pecas_retiradas: input.condenado ? input.pecas_retiradas : [],
+    situacao_operacional: input.situacao_operacional,
   };
 
   const { data, error } = await supabase.from("patrimonios").insert(payload).select(
-    "id, patrimonio, secretaria_id, equipamento_id, tecnologia_id, marca, responsavel, problema, diagnostico, solucao, status, arquivado, condenado, pecas_retiradas, created_at, updated_at",
+    "id, patrimonio, secretaria_id, equipamento_id, tecnologia_id, marca, responsavel, problema, diagnostico, solucao, status, arquivado, condenado, pecas_retiradas, situacao_operacional, created_at, updated_at",
   ).single();
 
   if (error || !data) {
     throw new Error(`Falha ao criar patrimonio: ${error?.message ?? "registro nao retornado"}`);
   }
 
-  return mapPatrimonioRow(data as PatrimonioRow);
+  return { ...mapPatrimonioRow(data as PatrimonioRow), inventario: null };
 }
 
 export async function updatePatrimonioRecord(
@@ -281,13 +298,11 @@ export async function updatePatrimonioRecord(
     tecnologia_id: input.tecnologia_id.trim() ? input.tecnologia_id : null,
     marca: input.marca.trim(),
     responsavel: input.responsavel.trim(),
-    problema: normalizeText(input.problema),
-    diagnostico: normalizeText(input.diagnostico),
-    solucao: normalizeText(input.solucao),
     status: input.status,
     arquivado: input.status === "written_off",
     condenado: input.condenado,
     pecas_retiradas: input.condenado ? input.pecas_retiradas : [],
+    situacao_operacional: input.situacao_operacional,
   };
 
   const { data, error } = await supabase
@@ -295,7 +310,7 @@ export async function updatePatrimonioRecord(
     .update(payload)
     .eq("id", id)
     .select(
-      "id, patrimonio, secretaria_id, equipamento_id, tecnologia_id, marca, responsavel, problema, diagnostico, solucao, status, arquivado, condenado, pecas_retiradas, created_at, updated_at",
+      "id, patrimonio, secretaria_id, equipamento_id, tecnologia_id, marca, responsavel, problema, diagnostico, solucao, status, arquivado, condenado, pecas_retiradas, situacao_operacional, created_at, updated_at",
     )
     .single();
 
@@ -303,7 +318,8 @@ export async function updatePatrimonioRecord(
     throw new Error(`Falha ao atualizar patrimonio: ${error?.message ?? "registro nao retornado"}`);
   }
 
-  return mapPatrimonioRow(data as PatrimonioRow);
+  const inventory = await getInventarioByPatrimonioId(id);
+  return { ...mapPatrimonioRow(data as PatrimonioRow), inventario: inventory };
 }
 
 export async function archivePatrimonioRecord(id: string): Promise<PatrimonioRecord> {
@@ -316,7 +332,7 @@ export async function archivePatrimonioRecord(id: string): Promise<PatrimonioRec
     })
     .eq("id", id)
     .select(
-      "id, patrimonio, secretaria_id, equipamento_id, tecnologia_id, marca, responsavel, problema, diagnostico, solucao, status, arquivado, condenado, pecas_retiradas, created_at, updated_at",
+      "id, patrimonio, secretaria_id, equipamento_id, tecnologia_id, marca, responsavel, problema, diagnostico, solucao, status, arquivado, condenado, pecas_retiradas, situacao_operacional, created_at, updated_at",
     )
     .single();
 
@@ -324,5 +340,6 @@ export async function archivePatrimonioRecord(id: string): Promise<PatrimonioRec
     throw new Error(`Falha ao arquivar patrimonio: ${error?.message ?? "registro nao retornado"}`);
   }
 
-  return mapPatrimonioRow(data as PatrimonioRow);
+  const inventory = await getInventarioByPatrimonioId(id);
+  return { ...mapPatrimonioRow(data as PatrimonioRow), inventario: inventory };
 }

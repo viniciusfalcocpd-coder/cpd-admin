@@ -5,6 +5,8 @@ import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { archivePatrimonioAction } from "@/services/patrimonio-actions";
 import type { PatrimonioPageData, PatrimonioRecord, PatrimonioTab } from "@/types/patrimonio";
+import type { PatrimonioAgenteFilter, PatrimonioOperacionalFilter } from "@/types/patrimonio";
+import { getInventarioAgenteStatus } from "@/types/inventario";
 
 function normalizeSearch(value: string) {
   return value
@@ -53,6 +55,8 @@ export function usePatrimonio(initialData: PatrimonioPageData) {
   const [query, setQuery] = useState("");
   const [activeTab, setActiveTab] = useState<PatrimonioTab>("ativos");
   const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [operationalFilter, setOperationalFilter] = useState<PatrimonioOperacionalFilter>("all");
+  const [agentFilter, setAgentFilter] = useState<PatrimonioAgenteFilter>("all");
   const [isPending, startTransition] = useTransition();
 
   useEffect(() => {
@@ -69,9 +73,15 @@ export function usePatrimonio(initialData: PatrimonioPageData) {
 
     return items.filter((item) => {
       const tabMatch = activeTab === "ativos" ? !item.arquivado : item.arquivado;
-      return tabMatch && matchesSearch(initialData, item, queryValue);
+      const operationalMatch = operationalFilter === "all" || item.situacao_operacional === operationalFilter;
+      const agentStatus = getInventarioAgenteStatus(item.inventario);
+      const agentMatch = agentFilter === "all"
+        || (agentFilter === "com_inventario" && agentStatus !== "sem_inventario")
+        || (agentFilter === "sem_inventario" && agentStatus === "sem_inventario")
+        || (agentFilter === "desatualizado" && agentStatus === "desatualizado");
+      return tabMatch && operationalMatch && agentMatch && matchesSearch(initialData, item, queryValue);
     });
-  }, [activeTab, initialData, items, query]);
+  }, [activeTab, agentFilter, initialData, items, operationalFilter, query]);
 
   useEffect(() => {
     if (selectedId && !filteredItems.some((item) => item.id === selectedId)) {
@@ -139,6 +149,10 @@ export function usePatrimonio(initialData: PatrimonioPageData) {
     setQuery,
     activeTab,
     setActiveTab,
+    operationalFilter,
+    setOperationalFilter,
+    agentFilter,
+    setAgentFilter,
     selectedItem,
     selectedId,
     setSelectedId,
@@ -150,4 +164,3 @@ export function usePatrimonio(initialData: PatrimonioPageData) {
     refresh,
   };
 }
-
