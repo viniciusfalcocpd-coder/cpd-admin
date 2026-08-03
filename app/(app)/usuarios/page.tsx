@@ -1,9 +1,7 @@
-import { UsuariosModule } from "@/components/modules/usuarios-module";
+import { redirect } from "next/navigation";
 
 export const metadata = {
   title: "Usuarios",
 };
 
-export default function UsuariosPage() {
-  return <UsuariosModule />;
-}
+export default function UsuariosPage() { redirect("/administracao?tab=usuarios"); }

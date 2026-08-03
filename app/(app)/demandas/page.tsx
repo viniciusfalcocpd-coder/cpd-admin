@@ -1,9 +1,7 @@
-import { DemandasModule } from "@/components/modules/demandas-module";
+import { redirect } from "next/navigation";
 
 export const metadata = {
   title: "Demandas",
 };
 
-export default function DemandasPage() {
-  return <DemandasModule />;
-}
+export default function DemandasPage() { redirect("/patrimonio?tab=manutencoes"); }

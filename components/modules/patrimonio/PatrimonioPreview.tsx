@@ -7,6 +7,7 @@ import type {
   TecnologiaLookup,
   SecretariaLookup,
 } from "@/types/patrimonio";
+import { getStatusMetadata } from "@/lib/status-metadata";
 
 type PatrimonioPreviewProps = {
   item: PatrimonioRecord;
@@ -195,7 +196,7 @@ export function PatrimonioPreview({
           </span>
 
           <p className="font-medium">
-            {item.status}
+            <span className={`border px-2 py-0.5 ${getStatusMetadata(item.status).className}`}>{getStatusMetadata(item.status).label}</span>
           </p>
         </div>
 

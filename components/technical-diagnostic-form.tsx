@@ -35,12 +35,14 @@ const parts = [
   "Fonte Notebook",
 ] as const;
 
+const technicianOptions = ["Vinicius", "Tiago", "Larissa", "Fabricio", "Ronildo", "Renato", "Pedro", "Fernanda", "Marcos"];
+
 const schema = z.object({
   patrimony: z.string().min(2, "Informe o patrimonio."),
   secretaria: z.string().min(2, "Informe a secretaria."),
   origin: z.string().min(2, "Informe a origem."),
   responsible: z.string().min(2, "Informe o responsavel."),
-  technician: z.string().min(2, "Informe o tecnico."),
+  technicians: z.array(z.string()).min(1, "Selecione pelo menos um tecnico."),
   date: z.string().min(1, "Informe a data."),
   brand: z.string().min(1, "Informe a marca."),
   model: z.string().min(1, "Informe o modelo."),
@@ -62,7 +64,7 @@ const defaultValues: DiagnosticFormValues = {
   secretaria: "",
   origin: "",
   responsible: "",
-  technician: "Vinicius",
+  technicians: ["Vinicius"],
   date: format(new Date(), "yyyy-MM-dd"),
   brand: "",
   model: "",
@@ -140,12 +142,12 @@ export function TechnicalDiagnosticForm() {
     line("IDENTIFICACAO");
     pdf.setFont("helvetica", "normal");
     line(`Laudo Numero: ${numero}`);
-    line(`Data: ${values.date}`);
+    line(`Data: ${format(new Date(`${values.date}T00:00:00`), "dd/MM/yyyy")}`);
     line(`Patrimonio: ${values.patrimony}`);
     line(`Secretaria: ${values.secretaria}`);
     line(`Origem da demanda: ${values.origin}`);
     line(`Responsavel pelo equipamento: ${values.responsible}`);
-    line(`Tecnico responsavel: ${values.technician}`);
+    line(`Tecnicos responsaveis: ${values.technicians.join(", ")}`);
     y += 3;
 
     pdf.setFont("helvetica", "bold");
@@ -218,16 +220,32 @@ export function TechnicalDiagnosticForm() {
                 <Field label="Responsavel pelo equipamento" error={form.formState.errors.responsible?.message}>
                   <Input {...form.register("responsible")} />
                 </Field>
-                <Field label="Tecnico responsavel" error={form.formState.errors.technician?.message}>
-                  <Select {...form.register("technician")}>
-                    {["Vinicius", "Tiago", "Larissa", "Fabricio", "Ronildo", "Renato", "Pedro", "Fernanda", "Marcos"].map(
-                      (person) => (
-                        <option key={person} value={person}>
+                <Field label="Tecnicos responsaveis" error={form.formState.errors.technicians?.message}>
+                  <div className="grid grid-cols-2 gap-2 border border-border bg-background p-2 md:grid-cols-3">
+                    {technicianOptions.map((person) => {
+                      const checked = form.watch("technicians").includes(person);
+
+                      return (
+                        <label key={person} className="flex items-center gap-2 border border-border bg-muted/30 px-2 py-1.5 text-sm">
+                          <input
+                            type="checkbox"
+                            checked={checked}
+                            onChange={(event) => {
+                              const current = form.getValues("technicians");
+                              form.setValue(
+                                "technicians",
+                                event.target.checked
+                                  ? [...current, person]
+                                  : current.filter((technician) => technician !== person),
+                                { shouldValidate: true, shouldDirty: true },
+                              );
+                            }}
+                          />
                           {person}
-                        </option>
-                      ),
-                    )}
-                  </Select>
+                        </label>
+                      );
+                    })}
+                  </div>
                 </Field>
                 <Field label="Data" error={form.formState.errors.date?.message}>
                   <Input type="date" {...form.register("date")} />
@@ -352,7 +370,7 @@ export function TechnicalDiagnosticForm() {
           <div className="space-y-3 border border-border bg-muted/30 p-3 text-sm">
             <Row label="Patrimonio" value={watched.patrimony || "-"} />
             <Row label="Secretaria" value={watched.secretaria || "-"} />
-            <Row label="Tecnico" value={watched.technician || "-"} />
+            <Row label="Tecnicos" value={watched.technicians?.join(", ") || "-"} />
             <Row label="Data" value={watched.date || "-"} />
             <Row label="Equipamento" value={[watched.brand, watched.model].filter(Boolean).join(" ") || "-"} />
             <Row label="Status" value={watched.status || "-"} />

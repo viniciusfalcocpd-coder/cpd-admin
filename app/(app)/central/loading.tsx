@@ -1,0 +1,2 @@
+import { TableLoadingRows } from "@/components/table-loading-rows";
+export default function Loading() { return <div className="grid gap-3 xl:grid-cols-2" aria-busy="true">{Array.from({ length: 4 }).map((_, index) => <section key={index} className="border border-border bg-card"><div className="h-9 border-b border-border bg-muted" /><table className="w-full"><tbody><TableLoadingRows columns={5} rows={3} /></tbody></table></section>)}</div>; }

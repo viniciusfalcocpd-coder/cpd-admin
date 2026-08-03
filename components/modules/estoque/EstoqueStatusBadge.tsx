@@ -1,6 +1,7 @@
 "use client";
 
 import { Badge } from "@/components/ui/badge";
+import { getStatusMetadata } from "@/lib/status-metadata";
 
 export type StockStatusValue = "empty" | "low" | "medium" | "high";
 
@@ -15,7 +16,7 @@ export function getStockStatus(quantity: number): StockStatus {
     return {
       value: "empty",
       label: "Sem estoque",
-      className: "border-red-300 bg-red-100 text-red-800",
+      className: getStatusMetadata("canceled").className,
     };
   }
 
@@ -23,7 +24,7 @@ export function getStockStatus(quantity: number): StockStatus {
     return {
       value: "low",
       label: "Baixo",
-      className: "border-amber-300 bg-amber-100 text-amber-900",
+      className: getStatusMetadata("open").className,
     };
   }
 
@@ -31,14 +32,14 @@ export function getStockStatus(quantity: number): StockStatus {
     return {
       value: "medium",
       label: "Medio",
-      className: "border-blue-300 bg-blue-100 text-blue-800",
+      className: getStatusMetadata("in_progress").className,
     };
   }
 
   return {
     value: "high",
     label: "Alto",
-    className: "border-emerald-300 bg-emerald-100 text-emerald-800",
+      className: getStatusMetadata("done").className,
   };
 }
 
@@ -50,7 +51,7 @@ export function EstoqueStatusBadge({ quantity }: EstoqueStatusBadgeProps) {
   const status = getStockStatus(quantity);
 
   return (
-    <Badge variant="outline" className={status.className}>
+    <Badge variant="outline" className={`border ${status.className}`}>
       {status.label}
     </Badge>
   );

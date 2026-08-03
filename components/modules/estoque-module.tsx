@@ -16,6 +16,10 @@ import {
   deleteStockItemAction,
   updateStockItemAction,
 } from "@/services/estoque-actions";
+import { ContextTabs } from "@/components/context-tabs";
+import { ModuleCommandBar } from "@/components/module-command-bar";
+import { StatusBar } from "@/components/status-bar";
+import { Archive, ClipboardPlus, Edit3, RefreshCcw } from "lucide-react";
 
 const defaultTypes = ["Armazenamento", "Energia", "Perifericos", "Rede", "Componentes", "Outros"];
 
@@ -87,6 +91,7 @@ export function EstoqueModule({ initialData }: EstoqueModuleProps) {
   const [typeFilter, setTypeFilter] = useState("all");
   const [statusFilter, setStatusFilter] = useState<EstoqueStatusFilter>("all");
   const [isPending, startTransition] = useTransition();
+  const [section, setSection] = useState("itens");
 
   useEffect(() => {
     setItems(initialData.items);
@@ -207,11 +212,15 @@ export function EstoqueModule({ initialData }: EstoqueModuleProps) {
         />
       ) : null}
 
+      <div className="flex min-h-0 flex-1 flex-col gap-2">
+      <div><h1 className="text-xl font-semibold">Estoque</h1><p className="text-xs text-muted-foreground">Itens e alertas operacionais</p></div>
+      <ContextTabs tabs={[{value:"itens",label:"Itens"},{value:"movimentacoes",label:"Movimentações"},{value:"categorias",label:"Categorias"},{value:"alertas",label:"Alertas"}]} value={section} onChange={setSection} />
+      {section === "itens" || section === "alertas" ? <>
+      <ModuleCommandBar actions={[{label:"Novo item",icon:ClipboardPlus,variant:"primary",onClick:openCreate},{label:"Editar",icon:Edit3,onClick:()=>selectedItem && openEdit(selectedItem),enabled:Boolean(selectedItem)},{label:"Arquivar",icon:Archive,onClick:requestDelete,enabled:Boolean(selectedItem)},{label:"Atualizar",icon:RefreshCcw,onClick:()=>{router.refresh();toast.success("Estoque atualizado.")}}]} />
       <ModuleBrowser
         title="Estoque"
-        description="Controle simples com entrada, saida e ajuste."
         storageKey="cpd:estoque"
-        items={filteredItems}
+        items={section === "alertas" ? filteredItems.filter((item) => item.quantity <= 5) : filteredItems}
         getKey={(item) => item.id}
         selectedKey={selectedId}
         onSelect={selectItem}
@@ -267,6 +276,9 @@ export function EstoqueModule({ initialData }: EstoqueModuleProps) {
           </div>
         )}
       />
+      </> : <div className="border border-dashed border-border bg-card p-6 text-xs text-muted-foreground">{section === "movimentacoes" ? "Nenhuma movimentação persistida está disponível nesta etapa." : "O fluxo de categorias existente será incorporado nesta aba."}</div>}
+      <StatusBar selected={selectedItem ? 1 : 0} visible={section === "alertas" ? filteredItems.filter((item) => item.quantity <= 5).length : filteredItems.length} filters={categoryFilter !== "all" || typeFilter !== "all" || statusFilter !== "all" ? 1 : 0} />
+      </div>
 
       <EstoqueForm
         open={formOpen}

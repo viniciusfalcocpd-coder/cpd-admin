@@ -3,27 +3,78 @@
 @tailwind utilities;
 
 :root {
-  --background: 0 0% 97%;
-  --foreground: 220 15% 16%;
-  --card: 0 0% 100%;
-  --card-foreground: 220 15% 16%;
-  --popover: 0 0% 100%;
-  --popover-foreground: 220 15% 16%;
-  --primary: 214 65% 30%;
+  --classic-workspace: #e4e7eb;
+  --classic-surface: #f8f9fa;
+  --classic-panel: #eef1f4;
+  --classic-panel-header: #d9dee4;
+  --classic-border: #a5adb7;
+  --classic-border-dark: #737d89;
+  --classic-border-light: #ffffff;
+  --classic-primary: #234b78;
+  --classic-primary-hover: #193b62;
+  --classic-selection: #285887;
+  --classic-selection-text: #ffffff;
+  --classic-text: #20252b;
+  --classic-muted-text: #606a75;
+  --classic-disabled: #a5abb2;
+  --classic-table-header: #e2e6ea;
+  --classic-table-row: #ffffff;
+  --classic-table-row-alt: #f4f6f8;
+  --classic-table-hover: #e6edf5;
+  --status-pending-bg: #f3e6bd;
+  --status-pending-text: #6b4a00;
+  --status-pending-border: #b58a2a;
+  --status-progress-bg: #d7e3ef;
+  --status-progress-text: #234b6d;
+  --status-progress-border: #6f8faa;
+  --status-waiting-bg: #eadfd2;
+  --status-waiting-text: #6a4930;
+  --status-waiting-border: #9b7a5f;
+  --status-done-bg: #dbe8df;
+  --status-done-text: #2d5b42;
+  --status-done-border: #668a72;
+  --status-danger-bg: #ecd7db;
+  --status-danger-text: #7a2631;
+  --status-danger-border: #a95b67;
+  --status-neutral-bg: #e2e1dc;
+  --status-neutral-text: #555650;
+  --status-neutral-border: #989991;
+  --status-olive-bg: #e1e3d2;
+  --status-olive-text: #5a6038;
+  --status-olive-border: #969b68;
+  --status-agent-bg: #d5e6e1;
+  --status-agent-text: #24594f;
+  --status-agent-border: #6b9b90;
+  --background: 210 14% 91%;
+  --foreground: 213 15% 15%;
+  --card: 210 20% 98%;
+  --card-foreground: 213 15% 15%;
+  --popover: 210 20% 98%;
+  --popover-foreground: 213 15% 15%;
+  --primary: 213 54% 30%;
   --primary-foreground: 0 0% 100%;
-  --secondary: 210 12% 92%;
-  --secondary-foreground: 220 15% 16%;
-  --muted: 210 12% 94%;
-  --muted-foreground: 215 10% 40%;
-  --accent: 210 12% 92%;
-  --accent-foreground: 220 15% 16%;
+  --secondary: 210 18% 95%;
+  --secondary-foreground: 213 15% 15%;
+  --muted: 213 14% 87%;
+  --muted-foreground: 213 10% 42%;
+  --accent: 211 45% 93%;
+  --accent-foreground: 213 15% 15%;
   --destructive: 0 70% 42%;
   --destructive-foreground: 0 0% 100%;
-  --border: 215 10% 78%;
-  --input: 215 10% 78%;
-  --ring: 214 65% 30%;
+  --border: 213 14% 68%;
+  --input: 213 14% 68%;
+  --ring: 213 54% 30%;
   --radius: 0rem;
 }
+
+.classic-status-pending { border-color: var(--status-pending-border); background: var(--status-pending-bg); color: var(--status-pending-text); }
+.classic-status-progress { border-color: var(--status-progress-border); background: var(--status-progress-bg); color: var(--status-progress-text); }
+.classic-status-waiting { border-color: var(--status-waiting-border); background: var(--status-waiting-bg); color: var(--status-waiting-text); }
+.classic-status-done { border-color: var(--status-done-border); background: var(--status-done-bg); color: var(--status-done-text); }
+.classic-status-danger { border-color: var(--status-danger-border); background: var(--status-danger-bg); color: var(--status-danger-text); }
+.classic-status-neutral { border-color: var(--status-neutral-border); background: var(--status-neutral-bg); color: var(--status-neutral-text); }
+.classic-status-olive { border-color: var(--status-olive-border); background: var(--status-olive-bg); color: var(--status-olive-text); }
+.classic-status-agent { border-color: var(--status-agent-border); background: var(--status-agent-bg); color: var(--status-agent-text); }
 
 .dark {
   --background: 220 15% 10%;
@@ -57,8 +108,8 @@ html {
 
 body {
   min-height: 100vh;
-  background: hsl(var(--background));
-  color: hsl(var(--foreground));
+  background: var(--classic-workspace);
+  color: var(--classic-text);
   font-family: var(--font-body), sans-serif;
   letter-spacing: -0.01em;
 }
@@ -74,5 +125,5 @@ a {
 
 .glass-panel {
   backdrop-filter: none;
-  background: hsl(var(--card));
+  background: var(--classic-surface);
 }

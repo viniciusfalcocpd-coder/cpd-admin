@@ -1,9 +1,7 @@
-import { SolicitacoesModule } from "@/components/modules/solicitacoes-module";
+import { redirect } from "next/navigation";
 
 export const metadata = {
   title: "Solicitacoes",
 };
 
-export default function SolicitacoesPage() {
-  return <SolicitacoesModule />;
-}
+export default function SolicitacoesPage() { redirect("/central"); }

@@ -9,6 +9,7 @@ type PatrimonioTableProps = {
   equipamentos: EquipamentoLookup[];
   selectedId: string | null;
   onSelect: (item: PatrimonioRecord) => void;
+  onOpen?: (item: PatrimonioRecord) => void;
 };
 
 function getLookupName<T extends { id: string; nome: string }>(items: T[], id: string | null) {
@@ -30,6 +31,7 @@ export function PatrimonioTable({
   equipamentos,
   selectedId,
   onSelect,
+  onOpen,
 }: PatrimonioTableProps) {
   return (
     <div className="border border-border bg-card">
@@ -56,9 +58,14 @@ export function PatrimonioTable({
  className={`
    cursor-pointer
    hover:bg-muted/50
-   ${isSelected ? "bg-muted/70" : ""}
+   ${isSelected ? "bg-[var(--classic-selection)] text-[var(--classic-selection-text)]" : ""}
  `}
  onClick={() => onSelect(item)}
+ onDoubleClick={() => onOpen?.(item)}
+ onKeyDown={(event) => {
+   if (event.key === "Enter") onOpen?.(item);
+ }}
+ tabIndex={0}
 >
                   <TableCell className="font-medium">{item.patrimonio}</TableCell>
                   <TableCell>{getLookupName(equipamentos, item.equipamento_id)}</TableCell>
